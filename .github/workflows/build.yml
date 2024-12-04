@@ -20,11 +20,11 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        pip install pyinstaller
+        pip install pyinstaller pandas openpyxl
 
     - name: Create Executable
       run: |
-        pyinstaller --onefile --windowed --hidden-import pandas patch_configurator.py
+        pyinstaller --onefile --windowed --hidden-import pandas --hidden-import openpyxl patch_configurator.py
 
     - name: Upload Executable
       uses: actions/upload-artifact@v4
