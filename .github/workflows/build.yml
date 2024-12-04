@@ -1,0 +1,33 @@
+name: Build macOS Executable
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set Up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.x
+
+    - name: Install Dependencies
+      run: |
+        pip install pyinstaller
+
+    - name: Create Executable
+      run: |
+        pyinstaller --onefile --windowed patch_configurator.py
+
+    - name: Upload Executable
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-executable
+        path: dist/patch_configurator
