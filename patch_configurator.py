@@ -1,38 +1,34 @@
-
-import os
-import importlib.util
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pandas as pd
-import json
 
-# Percorso al file di configurazione
-config_path = os.path.join(os.path.dirname(__file__), 'config.py')
+# Dizionari di mapping per gli effetti
+effects_timeline = {"dDuck": "PC1", "dDual": "PC2", "dSlap": "PC3", "dTape": "PC0"}
+effects_looperhino = {
+    "COMP": "PC1",
+    "Low OD": "PC2",
+    "Mid OD": "PC3",
+    "Hi OD": "PC4",
+    "COMP + Low OD": "PC5",
+    "COMP + Mid OD": "PC6",
+    "Low OD + Mid OD": "PC7",
+    "Low OD + Hi OD": "PC8",
+    "All Loops On": "PC0"
+}
+effects_mobius = {"hTrem": "PC0", "oTrem": "PC1", "tTrem": "PC2", "aChor": "PC3", "Phas": "PC4"}
 
-# Carica dinamicamente il modulo config
-spec = importlib.util.spec_from_file_location('config', config_path)
-config = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(config)
-
-# Ora gli effetti possono essere usati dal modulo config
-effects_timeline = config.effects_timeline
-effects_looperhino = config.effects_looperhino
-effects_mobius = config.effects_mobius
-
-# Resto del codice del configuratore
 class PatchConfiguratorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Patch Configurator")
         self.patches = []
-        self.config_file = config_path
 
         # Frames
         self.main_frame = ttk.Frame(root, padding="10")
         self.main_frame.grid(row=0, column=0, sticky="NSEW")
 
         # Patch Number
-        ttk.Label(self.main_frame, text="Numero Patch (0-127):").grid(row=0, column=0, sticky="W")
+        ttk.Label(self.main_frame, text="Numero Patch (1-127):").grid(row=0, column=0, sticky="W")
         self.patch_number_entry = ttk.Entry(self.main_frame, width=5)
         self.patch_number_entry.grid(row=0, column=1, sticky="W")
 
@@ -78,33 +74,100 @@ class PatchConfiguratorGUI:
         self.patch_list.bind("<Double-1>", self.on_patch_double_click)
         self.patch_list.grid(row=6, column=0, columnspan=4, sticky="NSEW")
 
-        # Carica patch salvate
-        self.load_patches()
-        self.populate_patch_list()
-
-    def load_patches(self):
-        # Metodo per caricare patch salvate (implementazione da aggiungere)
-        pass
-
-    def populate_patch_list(self):
-        # Metodo per popolare la lista delle patch (implementazione da aggiungere)
-        pass
-
     def add_patch(self):
-        # Metodo per aggiungere una nuova patch (implementazione da aggiungere)
-        pass
+        patch_number = self.patch_number_entry.get()
+        patch_name = self.patch_name_entry.get()
+        if not patch_number.isdigit() or not (1 <= int(patch_number) <= 127):
+            messagebox.showerror("Errore", "Il numero della patch deve essere tra 1 e 127!")
+            return
+        if not patch_name:
+            messagebox.showerror("Errore", "Il nome della patch è obbligatorio!")
+            return
 
-    def export_to_excel(self):
-        # Metodo per esportare patch in Excel (implementazione da aggiungere)
-        pass
+        timeline = self.timeline_effect.get()
+        timeline_state = self.timeline_state.get()
+        looperhino = self.looperhino_effect.get()
+        mobius = self.mobius_effect.get()
+        mobius_state = self.mobius_state.get()
+        flint_boost_state = self.flint_boost_state.get()
+
+        forms = []
+
+        if timeline:
+            cc_value = "127" if timeline_state == "On" else "0"
+            timeline_effect_desc = f"{effects_timeline[timeline]} ({timeline})"
+            forms.append({
+                "FORM": "FORM1",
+                "Canale MIDI": 1,
+                "Tipo": "PC + CC",
+                "Messaggio": f"{timeline_effect_desc}, CC102={cc_value} ({'On' if cc_value == '127' else 'Off'})"
+            })
+
+        if looperhino:
+            looperhino_effect_desc = f"{effects_looperhino[looperhino]} ({looperhino})"
+            forms.append({
+                "FORM": "FORM3",
+                "Canale MIDI": 3,
+                "Tipo": "PC",
+                "Messaggio": looperhino_effect_desc
+            })
+
+        if mobius:
+            cc_value = "127" if mobius_state == "On" else "0"
+            mobius_effect_desc = f"{effects_mobius[mobius]} ({mobius})"
+            forms.append({
+                "FORM": "FORM4",
+                "Canale MIDI": 4,
+                "Tipo": "PC + CC",
+                "Messaggio": f"{mobius_effect_desc}, CC102={cc_value} ({'On' if cc_value == '127' else 'Off'})"
+            })
+
+        if flint_boost_state:
+            cc_value = "127" if flint_boost_state == "On" else "0"
+            forms.append({
+                "FORM": "FORM2",
+                "Canale MIDI": 2,
+                "Tipo": "CC",
+                "Messaggio": f"CC22={cc_value} (Dynamic Mode 1, {'On' if cc_value == '127' else 'Off'})"
+            })
+
+        for form in forms:
+            self.patches.append({"Patch Number": patch_number, "Patch Name": patch_name, **form})
+
+        self.patch_list.insert("", "end", values=(patch_number, patch_name))
+
+        # Reset inputs
+        self.patch_number_entry.delete(0, tk.END)
+        self.patch_name_entry.delete(0, tk.END)
+        self.timeline_effect.set("")
+        self.timeline_state.set("")
+        self.looperhino_effect.set("")
+        self.mobius_effect.set("")
+        self.mobius_state.set("")
+        self.flint_boost_state.set("")
+
+        messagebox.showinfo("Successo", f"La patch '{patch_name}' è stata aggiunta!")
 
     def on_patch_double_click(self, event):
-        # Metodo per gestire il doppio click su una patch (implementazione da aggiungere)
-        pass
+        selected_item = self.patch_list.selection()[0]
+        patch_number, patch_name = self.patch_list.item(selected_item, "values")
 
+        # Popup con opzioni
+        popup = tk.Toplevel(self.root)
+        popup.title(f"Patch {patch_name} - Opzioni")
+        ttk.Label(popup, text=f"Patch {patch_name} - Seleziona un'opzione").pack(pady=10)
 
-# Avvio dell'applicazione
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = PatchConfiguratorGUI(root)
-    root.mainloop()
+        ttk.Button(popup, text="Visualizza", command=lambda: self.show_patch_details(patch_number, popup)).pack(pady=5)
+        ttk.Button(popup, text="Elimina", command=lambda: self.delete_patch(patch_number, selected_item, popup)).pack(pady=5)
+
+    def show_patch_details(self, patch_number, popup):
+        patch_details = [patch for patch in self.patches if patch["Patch Number"] == patch_number]
+        if not patch_details:
+            messagebox.showerror("Errore", "Dettagli non trovati!")
+            popup.destroy()
+            return
+
+        # Finestra con tabella
+        details_popup = tk.Toplevel(self.root)
+        details_popup.title(f"Dettagli Patch {patch_number}")
+        tree = ttk.Treeview(details_popup, columns=("FORM", "Canale MIDI
