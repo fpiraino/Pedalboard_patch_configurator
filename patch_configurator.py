@@ -3,13 +3,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pandas as pd
 import json
-import os
-from config import effects_timeline, effects_looperhino, effects_mobius
+import osgit
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 # File per salvare le patch configurate
-PATCHES_FILE = "patches.json"
+PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches.json")
 
 class PatchConfiguratorGUI:
+        self.config_file = CONFIG_FILE
     def __init__(self, root):
         self.root = root
         self.root.title("Patch Configurator")
@@ -34,7 +35,6 @@ class PatchConfiguratorGUI:
 
         # Timeline Effect
         ttk.Label(self.main_frame, text="Effetto Timeline:").grid(row=1, column=0, sticky="W")
-        self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_effect.grid(row=1, column=1, sticky="W")
         self.timeline_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
         self.timeline_state.grid(row=1, column=2, sticky="W")
@@ -53,9 +53,32 @@ class PatchConfiguratorGUI:
 
         # Flint Boost
         ttk.Label(self.main_frame, text="Boost Flint (Dynamic Mode 1):").grid(row=4, column=0, sticky="W")
-        self.flint_boost_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
         self.flint_boost_state.grid(row=4, column=1, sticky="W")
 
+
+        # Looperhino Effect
+        ttk.Label(self.main_frame, text="Effetto Looperhino:").grid(row=1, column=0, sticky="W")
+        self.looperhino_effect = ttk.Combobox(self.main_frame, values=list(effects_looperhino.keys()), width=25)
+        self.looperhino_effect.grid(row=1, column=1, sticky="W")
+
+        # Timeline Effect
+        ttk.Label(self.main_frame, text="Effetto Timeline:").grid(row=2, column=0, sticky="W")
+        self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
+        self.timeline_effect.grid(row=2, column=1, sticky="W")
+        self.timeline_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
+        self.timeline_state.grid(row=2, column=2, sticky="W")
+
+        # Mobius Effect
+        ttk.Label(self.main_frame, text="Effetto Mobius:").grid(row=3, column=0, sticky="W")
+        self.mobius_effect = ttk.Combobox(self.main_frame, values=list(effects_mobius.keys()), width=25)
+        self.mobius_effect.grid(row=3, column=1, sticky="W")
+        self.mobius_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
+        self.mobius_state.grid(row=3, column=2, sticky="W")
+
+        # Flint Boost
+        ttk.Label(self.main_frame, text="Boost Flint (Dynamic Mode 1):").grid(row=4, column=0, sticky="W")
+        self.flint_boost_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
+        self.flint_boost_state.grid(row=4, column=1, sticky="W")
         # Buttons
         self.add_patch_button = ttk.Button(self.main_frame, text="Aggiungi Patch", command=self.add_patch)
         self.add_patch_button.grid(row=5, column=0, pady=10)
@@ -75,7 +98,7 @@ class PatchConfiguratorGUI:
     def add_patch(self):
         patch_number = self.patch_number_entry.get()
         patch_name = self.patch_name_entry.get()
-        if not patch_number.isdigit() or not (1 <= int(patch_number) <= 127):
+        if not patch_number.isdigit() or not (0 <= int(patch_number) <= 127):
             messagebox.showerror("Errore", "Il numero della patch deve essere tra 1 e 127!")
             return
         if not patch_name:
