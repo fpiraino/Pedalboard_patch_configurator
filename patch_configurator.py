@@ -1,27 +1,22 @@
+
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pandas as pd
+import json
+import os
+from config import effects_timeline, effects_looperhino, effects_mobius
 
-# Dizionari di mapping per gli effetti
-effects_timeline = {"dDuck": "PC1", "dDual": "PC2", "dSlap": "PC3", "dTape": "PC0"}
-effects_looperhino = {
-    "COMP": "PC1",
-    "Low OD": "PC2",
-    "Mid OD": "PC3",
-    "Hi OD": "PC4",
-    "COMP + Low OD": "PC5",
-    "COMP + Mid OD": "PC6",
-    "Low OD + Mid OD": "PC7",
-    "Low OD + Hi OD": "PC8",
-    "All Loops On": "PC0"
-}
-effects_mobius = {"hTrem": "PC0", "oTrem": "PC1", "tTrem": "PC2", "aChor": "PC3", "Phas": "PC4"}
+# File per salvare le patch configurate
+PATCHES_FILE = "patches.json"
 
 class PatchConfiguratorGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Patch Configurator")
         self.patches = []
+
+        # Carica le patch salvate
+        self.load_patches()
 
         # Frames
         self.main_frame = ttk.Frame(root, padding="10")
@@ -73,6 +68,9 @@ class PatchConfiguratorGUI:
         self.patch_list.heading("Nome", text="Nome")
         self.patch_list.bind("<Double-1>", self.on_patch_double_click)
         self.patch_list.grid(row=6, column=0, columnspan=4, sticky="NSEW")
+
+        # Popola la lista delle patch
+        self.populate_patch_list()
 
     def add_patch(self):
         patch_number = self.patch_number_entry.get()
@@ -134,6 +132,10 @@ class PatchConfiguratorGUI:
         for form in forms:
             self.patches.append({"Patch Number": patch_number, "Patch Name": patch_name, **form})
 
+        # Salva le patch nel file
+        self.save_patches()
+
+        # Aggiorna la lista
         self.patch_list.insert("", "end", values=(patch_number, patch_name))
 
         # Reset inputs
@@ -161,7 +163,10 @@ class PatchConfiguratorGUI:
         ttk.Button(popup, text="Elimina", command=lambda: self.delete_patch(patch_number, selected_item, popup)).pack(pady=5)
 
     def show_patch_details(self, patch_number, popup):
-        patch_details = [patch for patch in self.patches if patch["Patch Number"] == patch_number]
+        patch_details = sorted(
+            [patch for patch in self.patches if patch["Patch Number"] == patch_number],
+            key=lambda x: x["FORM"]
+        )
         if not patch_details:
             messagebox.showerror("Errore", "Dettagli non trovati!")
             popup.destroy()
@@ -186,6 +191,7 @@ class PatchConfiguratorGUI:
     def delete_patch(self, patch_number, selected_item, popup):
         self.patches = [patch for patch in self.patches if patch["Patch Number"] != patch_number]
         self.patch_list.delete(selected_item)
+        self.save_patches()
         messagebox.showinfo("Successo", f"La patch {patch_number} è stata eliminata!")
         popup.destroy()
 
@@ -202,6 +208,19 @@ class PatchConfiguratorGUI:
         df = pd.DataFrame(self.patches)
         df.to_excel(file_path, index=False)
         messagebox.showinfo("Successo", f"Le patch sono state esportate in {file_path}!")
+
+    def save_patches(self):
+        with open(PATCHES_FILE, "w") as file:
+            json.dump(self.patches, file)
+
+    def load_patches(self):
+        if os.path.exists(PATCHES_FILE):
+            with open(PATCHES_FILE, "r") as file:
+                self.patches = json.load(file)
+
+    def populate_patch_list(self):
+        for patch in self.patches:
+            self.patch_list.insert("", "end", values=(patch["Patch Number"], patch["Patch Name"]))
 
 
 root = tk.Tk()
