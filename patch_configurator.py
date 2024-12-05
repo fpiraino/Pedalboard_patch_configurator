@@ -10,12 +10,12 @@ CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.j
 PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches.json")
 
 class PatchConfiguratorGUI:
-
     def __init__(self, root):
+        self.config_file = CONFIG_FILE
         self.root = root
         self.root.title("Patch Configurator")
         self.patches = []
-        self.config_file = CONFIG_FILE
+
         # Carica le patch salvate
         self.load_patches()
 
