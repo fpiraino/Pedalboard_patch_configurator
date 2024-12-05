@@ -12,8 +12,24 @@ PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches
 
 class PatchConfiguratorGUI:
     def __init__(self, root):
+        # Inizializzazione degli attributi
+        self.root = root
+        self.patches = []
+        self.config_file = CONFIG_FILE
+        self.patch_number_entry = None
+        self.patch_name_entry = None
+        self.timeline_effect = None
+        self.timeline_state = None
+        self.looperhino_effect = None
+        self.mobius_effect = None
+        self.mobius_state = None
+        self.flint_boost_state = None
+        self.patch_list = None
+        # Configura il titolo della finestra
+        self.root.title("Patch Configurator")
         # Inizializzazione del main_frame
         self.main_frame = ttk.Frame(root, padding="10")
+        self.load_patches()
         self.main_frame.grid(row=0, column=0, sticky="NSEW")
         self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_state = ttk.Combobox(self.main_frame, values=['On', 'Off'], width=10)
@@ -23,10 +39,10 @@ class PatchConfiguratorGUI:
         self.patches = []
 
         # Carica le patch salvate
-        self.load_patches()
 
         # Frames
         self.main_frame = ttk.Frame(root, padding="10")
+        self.load_patches()
         self.main_frame.grid(row=0, column=0, sticky="NSEW")
 
         # Patch Number
@@ -95,13 +111,13 @@ class PatchConfiguratorGUI:
 
         # Patch List
         self.patch_list = ttk.Treeview(self.main_frame, columns=("Numero", "Nome"), show="headings", height=10)
+        self.populate_patch_list()
         self.patch_list.heading("Numero", text="Numero")
         self.patch_list.heading("Nome", text="Nome")
         self.patch_list.bind("<Double-1>", self.on_patch_double_click)
         self.patch_list.grid(row=6, column=0, columnspan=4, sticky="NSEW")
 
         # Popola la lista delle patch
-        self.populate_patch_list()
 
     def add_patch(self):
         patch_number = self.patch_number_entry.get()
