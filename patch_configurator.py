@@ -12,7 +12,7 @@ PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches
 class PatchConfiguratorGUI:
         self.config_file = CONFIG_FILE
     def __init__(self, root):
-        self.root = rootgi
+        self.root = root
         self.root.title("Patch Configurator")
         self.patches = []
 
