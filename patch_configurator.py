@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pandas as pd
 import json
-import osgit
+import os
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
 # File per salvare le patch configurate
@@ -12,7 +12,7 @@ PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches
 class PatchConfiguratorGUI:
         self.config_file = CONFIG_FILE
     def __init__(self, root):
-        self.root = root
+        self.root = rootgi
         self.root.title("Patch Configurator")
         self.patches = []
 
