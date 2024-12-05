@@ -1,3 +1,4 @@
+# Versione: 1.0
 
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
@@ -11,6 +12,8 @@ PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches
 
 class PatchConfiguratorGUI:
     def __init__(self, root):
+        self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
+        self.timeline_state = ttk.Combobox(self.main_frame, values=['On', 'Off'], width=10)
         self.config_file = CONFIG_FILE
         self.root = root
         self.root.title("Patch Configurator")
@@ -35,6 +38,7 @@ class PatchConfiguratorGUI:
 
         # Timeline Effect
         ttk.Label(self.main_frame, text="Effetto Timeline:").grid(row=1, column=0, sticky="W")
+        self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_effect.grid(row=1, column=1, sticky="W")
         self.timeline_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
         self.timeline_state.grid(row=1, column=2, sticky="W")
@@ -63,6 +67,7 @@ class PatchConfiguratorGUI:
 
         # Timeline Effect
         ttk.Label(self.main_frame, text="Effetto Timeline:").grid(row=2, column=0, sticky="W")
+        self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_effect.grid(row=2, column=1, sticky="W")
         self.timeline_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
