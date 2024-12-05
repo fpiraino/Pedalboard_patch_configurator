@@ -1,13 +1,21 @@
-# App per configurazione pedaliera
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pandas as pd
-import openpyxl as px
 
 # Dizionari di mapping per gli effetti
 effects_timeline = {"dDuck": "PC1", "dDual": "PC2", "dSlap": "PC3", "dTape": "PC0"}
-effects_looperhino = {"COMP": "PC1", "Low OD": "PC2", "Mid OD": "PC3", "Hi OD": "PC4"}
+effects_looperhino = {
+    "COMP": "PC1",
+    "Low OD": "PC2",
+    "Mid OD": "PC3",
+    "Hi OD": "PC4",
+    "COMP + Low OD": "PC5",
+    "COMP + Mid OD": "PC6",
+    "Low OD + Mid OD": "PC7",
+    "Low OD + Hi OD": "PC8",
+    "All Loops On": "PC0"
+}
 effects_mobius = {"hTrem": "PC0", "oTrem": "PC1", "tTrem": "PC2", "aChor": "PC3", "Phas": "PC4"}
 
 class PatchConfiguratorGUI:
@@ -29,6 +37,8 @@ class PatchConfiguratorGUI:
         ttk.Label(self.main_frame, text="Effetto Timeline:").grid(row=1, column=0, sticky="W")
         self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_effect.grid(row=1, column=1, sticky="W")
+        self.timeline_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
+        self.timeline_state.grid(row=1, column=2, sticky="W")
 
         # Looperhino Effect
         ttk.Label(self.main_frame, text="Effetto Looperhino:").grid(row=2, column=0, sticky="W")
@@ -39,6 +49,8 @@ class PatchConfiguratorGUI:
         ttk.Label(self.main_frame, text="Effetto Mobius:").grid(row=3, column=0, sticky="W")
         self.mobius_effect = ttk.Combobox(self.main_frame, values=list(effects_mobius.keys()), width=25)
         self.mobius_effect.grid(row=3, column=1, sticky="W")
+        self.mobius_state = ttk.Combobox(self.main_frame, values=["On", "Off"], width=10)
+        self.mobius_state.grid(row=3, column=2, sticky="W")
 
         # Buttons
         self.add_patch_button = ttk.Button(self.main_frame, text="Aggiungi Patch", command=self.add_patch)
@@ -49,27 +61,44 @@ class PatchConfiguratorGUI:
         self.show_patches_button.grid(row=4, column=2, pady=10)
 
     def add_patch(self):
-        """Aggiungi una nuova patch."""
         patch_name = self.patch_name_entry.get()
         if not patch_name:
             messagebox.showerror("Errore", "Il nome della patch è obbligatorio!")
             return
 
         timeline = self.timeline_effect.get()
+        timeline_state = self.timeline_state.get()
         looperhino = self.looperhino_effect.get()
         mobius = self.mobius_effect.get()
-
-        if not (timeline or looperhino or mobius):
-            messagebox.showerror("Errore", "Devi selezionare almeno un effetto!")
-            return
+        mobius_state = self.mobius_state.get()
 
         forms = []
+
         if timeline:
-            forms.append({"FORM": "FORM1", "Canale MIDI": 1, "Tipo": "PC + CC", "Messaggio": f"{effects_timeline[timeline]}, CC102=127 (On)"})
+            cc_value = "127" if timeline_state == "On" else "0"
+            forms.append({
+                "FORM": "FORM1",
+                "Canale MIDI": 1,
+                "Tipo": "PC + CC",
+                "Messaggio": f"{effects_timeline[timeline]}, CC102={cc_value}"
+            })
+
         if looperhino:
-            forms.append({"FORM": "FORM3", "Canale MIDI": 3, "Tipo": "PC", "Messaggio": f"{effects_looperhino[looperhino]}"})
+            forms.append({
+                "FORM": "FORM3",
+                "Canale MIDI": 3,
+                "Tipo": "PC",
+                "Messaggio": f"{effects_looperhino[looperhino]}"
+            })
+
         if mobius:
-            forms.append({"FORM": "FORM4", "Canale MIDI": 4, "Tipo": "PC + CC", "Messaggio": f"{effects_mobius[mobius]}, CC102=127 (On)"})
+            cc_value = "127" if mobius_state == "On" else "0"
+            forms.append({
+                "FORM": "FORM4",
+                "Canale MIDI": 4,
+                "Tipo": "PC + CC",
+                "Messaggio": f"{effects_mobius[mobius]}, CC102={cc_value}"
+            })
 
         for form in forms:
             self.patches.append({"Patch Name": patch_name, **form})
@@ -77,13 +106,14 @@ class PatchConfiguratorGUI:
         # Reset inputs
         self.patch_name_entry.delete(0, tk.END)
         self.timeline_effect.set("")
+        self.timeline_state.set("")
         self.looperhino_effect.set("")
         self.mobius_effect.set("")
+        self.mobius_state.set("")
 
         messagebox.showinfo("Successo", f"La patch '{patch_name}' è stata aggiunta!")
 
     def export_to_excel(self):
-        """Esporta tutte le patch in un file Excel."""
         if not self.patches:
             messagebox.showerror("Errore", "Non ci sono patch da esportare!")
             return
@@ -94,7 +124,6 @@ class PatchConfiguratorGUI:
         messagebox.showinfo("Successo", f"Le patch sono state esportate in {file_path}!")
 
     def show_patches(self):
-        """Mostra le configurazioni delle patch in una finestra popup."""
         if not self.patches:
             messagebox.showerror("Errore", "Non ci sono patch da mostrare!")
             return
@@ -115,7 +144,6 @@ class PatchConfiguratorGUI:
         ttk.Button(popup, text="Chiudi", command=popup.destroy).pack(pady=10)
 
 
-# Avvia l'interfaccia grafica
 root = tk.Tk()
 app = PatchConfiguratorGUI(root)
 root.mainloop()
