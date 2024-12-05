@@ -1,7 +1,10 @@
-name: Build macOS Executable
+name: Build Executable
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -10,24 +13,33 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set Up Python
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.x
+        python-version: "3.9"
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install pyinstaller pandas openpyxl
 
-    - name: Create Executable
+    - name: Copy config file
       run: |
-        pyinstaller --onefile --windowed --hidden-import pandas --hidden-import openpyxl patch_configurator.py
+        cp config.py patch_configurator/
 
-    - name: Upload Executable
+    - name: Build executable
+      run: |
+        pyinstaller --onefile \
+                    --add-data "config.py:." \
+                    --hidden-import pandas \
+                    --hidden-import openpyxl \
+                    patch_configurator.py
+
+    - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: macos-executable
+        name: patch_configurator_executable
         path: dist/patch_configurator
