@@ -12,6 +12,9 @@ PATCHES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "patches
 
 class PatchConfiguratorGUI:
     def __init__(self, root):
+        # Inizializzazione del main_frame
+        self.main_frame = ttk.Frame(root, padding="10")
+        self.main_frame.grid(row=0, column=0, sticky="NSEW")
         self.timeline_effect = ttk.Combobox(self.main_frame, values=list(effects_timeline.keys()), width=25)
         self.timeline_state = ttk.Combobox(self.main_frame, values=['On', 'Off'], width=10)
         self.config_file = CONFIG_FILE
